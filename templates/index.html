@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Attendance Tracker</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container mt-5 p-4 rounded shadow bg-white">
+        <h2 class="text-center text-primary mb-4">📋 Attendance Tracker</h2>
+
+        <!-- Logout Option -->
+        {% if current_user.is_authenticated %}
+        <p class="text-center">Logged in as: {{ current_user.username }} (Role: {{ role }})</p>
+        <a href="{{ url_for('logout') }}" class="btn btn-danger w-100">Logout</a>
+        {% endif %}
+
+        <!-- Staff Attendance Form (Only visible for staff) -->
+        {% if role == 'staff' %}
+        <form id="attendanceForm" method="POST" action="/add" class="row g-3 mb-4">
+            <div class="col-md-5">
+                <input type="text" name="name" class="form-control" placeholder="Enter Name" required />
+            </div>
+            <div class="col-md-4">
+                <select name="status" class="form-select" required>
+                    <option selected disabled>Status</option>
+                    <option value="Present">✅ Present</option>
+                    <option value="Absent">❌ Absent</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-success w-100">Add Attendance</button>
+            </div>
+        </form>
+        {% endif %}
+
+        <!-- Attendance Records Table -->
+        <h4 class="text-secondary">📑 Attendance Records</h4>
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody id="attendanceTableBody">
+                <!-- Populated by JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Load Attendance Records dynamically
+        function loadAttendanceRecords() {
+            fetch('/attendance')
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.getElementById('attendanceTableBody');
+                    tableBody.innerHTML = ''; // Clear existing rows
+
+                    data.forEach(record => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${record[1]}</td>
+                            <td>${record[2]}</td>
+                            <td>${record[3]}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading attendance:', error);
+                });
+        }
+
+        window.onload = loadAttendanceRecords;
+    </script>
+</body>
+</html>
